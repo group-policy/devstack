@@ -565,6 +565,7 @@ source $TOP_DIR/lib/swift
 source $TOP_DIR/lib/ceilometer
 source $TOP_DIR/lib/heat
 source $TOP_DIR/lib/neutron
+source $TOP_DIR/lib/gbp
 source $TOP_DIR/lib/baremetal
 source $TOP_DIR/lib/ldap
 source $TOP_DIR/lib/dstat
@@ -772,6 +773,7 @@ if is_service_enabled swift glance horizon; then
 fi
 if is_service_enabled neutron nova horizon; then
     install_neutronclient
+    install_gbpclient
 fi
 if is_service_enabled heat horizon; then
     install_heatclient
@@ -812,6 +814,7 @@ if is_service_enabled cinder; then
 fi
 
 if is_service_enabled neutron; then
+    install_gbp
     install_neutron
     install_neutron_third_party
 fi
@@ -1067,6 +1070,7 @@ if is_service_enabled neutron; then
     # Run init_neutron only on the node hosting the neutron API server
     if is_service_enabled $DATABASE_BACKENDS && is_service_enabled q-svc; then
         init_neutron
+        init_gbp
     fi
 fi
 
@@ -1274,8 +1278,8 @@ if is_service_enabled neutron; then
 fi
 # Once neutron agents are started setup initial network elements
 if is_service_enabled q-svc; then
-    echo_summary "Creating initial neutron network elements"
-    create_neutron_initial_network
+    #echo_summary "Creating initial neutron network elements"
+    #create_neutron_initial_network
     setup_neutron_debug
 fi
 if is_service_enabled nova; then

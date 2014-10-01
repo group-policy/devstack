@@ -31,6 +31,7 @@ function install_infra {
     # bring down global requirements
     git_clone $REQUIREMENTS_REPO $REQUIREMENTS_DIR $REQUIREMENTS_BRANCH
     pip_install $REQUIREMENTS_DIR
+    sed -i '$a gbptestneutron' $DEST/requirements/global-requirements.txt
 
     # Install pbr
     if use_library_from_git "pbr"; then
