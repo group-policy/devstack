@@ -44,11 +44,19 @@ function install_gbpservice {
 
 # install_gbpclient() - Collect source and prepare
 function install_gbpclient {
+<<<<<<< HEAD
     git_clone $GBPCLIENT_REPO $GBPCLIENT_DIR $GBPCLIENT_BRANCH    
+=======
+    git_clone $GBPCLIENT_REPO $GBPCLIENT_DIR $GBPCLIENT_BRANCH
+>>>>>>> 1b4833a... Installation of GBP from stackforge
     setup_develop $GBPCLIENT_DIR
     sudo install -D -m 0644 -o $STACK_USER {$GBPCLIENT_DIR/tools/,/etc/bash_completion.d/}gbp.bash_completion
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1b4833a... Installation of GBP from stackforge
 # Restore xtrace
 $XTRACE
 
