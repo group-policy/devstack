@@ -37,7 +37,7 @@ function init_gbp {
 # install_gbp() - Collect source and prepare
 function install_gbp {
     git_clone $GBP_REPO $GBP_DIR $GBP_BRANCH
-    sed -i '/gbptestneutron/d' $GBP_DIR/requirements.txt
+    sed -i '/gbptestneutron/d' $GBP_DIR/test-requirements.txt
     setup_develop $GBP_DIR
 }
 
