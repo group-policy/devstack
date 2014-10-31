@@ -133,7 +133,7 @@ GBP_REPO=${GBP_REPO:-${GIT_BASE}/stackforge/group-based-policy.git}
 GBP_BRANCH=${GBP_BRANCH:-master}
 
 # group-based-policy client
-GBPCLIENT_REPO=${GBPCLIENT_REPO:-${GIT_BASE}/stackforge/group-based-policy-client.git}
+GBPCLIENT_REPO=${GBPCLIENT_REPO:-${GIT_BASE}/stackforge/python-group-based-policy-client.git}
 GBPCLIENT_BRANCH=${GBPCLIENT_BRANCH:-master}
 
 # metering service
