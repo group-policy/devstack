@@ -766,7 +766,7 @@ fi
 # Install clients libraries
 install_keystoneclient
 install_glanceclient
-install_cinderclient
+#install_cinderclient
 install_novaclient
 if is_service_enabled swift glance horizon; then
     install_swiftclient
