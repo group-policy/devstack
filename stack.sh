@@ -777,6 +777,7 @@ if is_service_enabled neutron nova horizon; then
 fi
 if is_service_enabled heat horizon; then
     install_heatclient
+    install_gbpheat
 fi
 
 # Install middleware
