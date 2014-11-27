@@ -55,6 +55,14 @@ function install_gbpheat {
     setup_develop $GBPHEAT_DIR
 }
 
+# install_gbpui() - Collect source and prepare
+function install_gbpui {
+    git_clone $GBPUI_REPO $GBPUI_DIR $GBPUI_BRANCH
+    setup_develop $GBPUI_DIR
+    ln -s $GBPUI_DIR/gbpui/_*project*.py $HORIZON_DIR/openstack_dashboard/enabled
+}
+
+
 # Restore xtrace
 $XTRACE
 
