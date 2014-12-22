@@ -60,7 +60,7 @@ function install_gbpheat {
 function install_gbpui {
     git_clone $GBPUI_REPO $GBPUI_DIR $GBPUI_BRANCH
     setup_develop $GBPUI_DIR
-    ln -s $GBPUI_DIR/gbpui/_*project*.py $HORIZON_DIR/openstack_dashboard/enabled
+    ln -sf $GBPUI_DIR/gbpui/_*project*.py $HORIZON_DIR/openstack_dashboard/enabled
 }
 
 
