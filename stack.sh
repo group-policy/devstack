@@ -1507,6 +1507,8 @@ fi
 # Indicate how long this took to run (bash maintained variable ``SECONDS``)
 echo_summary "stack.sh completed in $SECONDS seconds."
 
+./exercise.sh
+
 # Restore/close logging file descriptors
 exec 1>&3
 exec 2>&3
