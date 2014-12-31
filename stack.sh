@@ -815,7 +815,7 @@ if is_service_enabled cinder; then
 fi
 
 if is_service_enabled neutron; then
-    install_gbp
+    install_gbpservice
     install_neutron
     install_neutron_third_party
 fi
@@ -1072,7 +1072,7 @@ if is_service_enabled neutron; then
     # Run init_neutron only on the node hosting the neutron API server
     if is_service_enabled $DATABASE_BACKENDS && is_service_enabled q-svc; then
         init_neutron
-        init_gbp
+        init_gbpservice
     fi
 fi
 
