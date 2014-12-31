@@ -796,13 +796,9 @@ if is_service_enabled cinder; then
 fi
 
 if is_service_enabled neutron; then
-<<<<<<< HEAD
+    install_gbpservice
     # Network service
     stack_install_service neutron
-=======
-    install_gbp
-    install_neutron
->>>>>>> d18e066... Installation of GBP from stackforge
     install_neutron_third_party
 fi
 
@@ -1064,7 +1060,7 @@ if is_service_enabled neutron; then
     # Run init_neutron only on the node hosting the Neutron API server
     if is_service_enabled $DATABASE_BACKENDS && is_service_enabled q-svc; then
         init_neutron
-        init_gbp
+        init_gbpservice
     fi
 fi
 
@@ -1248,15 +1244,9 @@ if is_service_enabled neutron; then
     start_neutron_agents
 fi
 # Once neutron agents are started setup initial network elements
-<<<<<<< HEAD
 if is_service_enabled q-svc && [[ "$NEUTRON_CREATE_INITIAL_NETWORKS" == "True" ]]; then
     echo_summary "Creating initial neutron network elements"
     create_neutron_initial_network
-=======
-if is_service_enabled q-svc; then
-    #echo_summary "Creating initial neutron network elements"
-    #create_neutron_initial_network
->>>>>>> d18e066... Installation of GBP from stackforge
     setup_neutron_debug
 fi
 if is_service_enabled nova; then
