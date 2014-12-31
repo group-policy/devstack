@@ -797,7 +797,7 @@ fi
 
 if is_service_enabled neutron; then
     # Network service
-    install_gbp
+    install_gbpservice
     stack_install_service neutron
     install_neutron_third_party
 fi
@@ -1060,7 +1060,7 @@ if is_service_enabled neutron; then
     # Run init_neutron only on the node hosting the Neutron API server
     if is_service_enabled $DATABASE_BACKENDS && is_service_enabled q-svc; then
         init_neutron
-        init_gbp
+        init_gbpservice
     fi
 fi
 
