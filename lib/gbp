@@ -15,7 +15,7 @@
 # ``unstack.sh`` calls the entry points in this order:
 
 # Set up default directories
-GBP_DIR=$DEST/gbp
+GBPSERVICE_DIR=$DEST/gbp
 GBPCLIENT_DIR=$DEST/python-gbpclient
 GBPHEAT_DIR=$DEST/gbpautomation
 GBPUI_DIR=$DEST/gbpui
@@ -30,17 +30,17 @@ set +o xtrace
 # Functions
 # ---------
 
-# init_gbp() - Initialize databases, etc.
-function init_gbp {
+# init_gbpservice() - Initialize databases, etc.
+function init_gbpservice {
     # Run GBP db migrations
     gbp-db-manage --config-file $NEUTRON_CONF --config-file /$Q_PLUGIN_CONF_FILE upgrade head
 }
 
-# install_gbp() - Collect source and prepare
-function install_gbp {
-    git_clone $GBP_REPO $GBP_DIR $GBP_BRANCH
-    sed -i '/gbptestneutron/d' $GBP_DIR/test-requirements.txt
-    setup_develop $GBP_DIR
+# install_gbpservice() - Collect source and prepare
+function install_gbpservice {
+    git_clone $GBPSERVICE_REPO $GBPSERVICE_DIR $GBPSERVICE_BRANCH
+    sed -i '/gbptestneutron/d' $GBPSERVICE_DIR/test-requirements.txt
+    setup_develop $GBPSERVICE_DIR
 }
 
 # install_gbpclient() - Collect source and prepare
