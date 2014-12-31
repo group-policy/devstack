@@ -8,14 +8,14 @@
 
 # ``stack.sh`` calls the entry points in this order:
 #
-# - install_gbp
+# - install_gbpservice
 # - install_gbpclient
-# - init_gbp
+# - init_gbpservice
 #
 # ``unstack.sh`` calls the entry points in this order:
 
 # Set up default directories
-GBPSERVICE_DIR=$DEST/gbp
+GBPSERVICE_DIR=$DEST/gbpservice
 GBPCLIENT_DIR=$DEST/python-gbpclient
 GBPHEAT_DIR=$DEST/gbpautomation
 GBPUI_DIR=$DEST/gbpui
