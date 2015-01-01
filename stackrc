@@ -130,7 +130,7 @@ GIT_BASE=${GIT_BASE:-git://git.openstack.org}
 ##############
 # group-based-policy service
 GBPSERVICE_REPO=${GBP_REPO:-${GIT_BASE}/stackforge/group-based-policy.git}
-GBPSERVICE_BRANCH=${GBP_BRANCH:-master}
+GBPSERVICE_BRANCH=${GBPSERVICE_BRANCH:-master}
 
 # group-based-policy client
 GBPCLIENT_REPO=${GBPCLIENT_REPO:-${GIT_BASE}/stackforge/python-group-based-policy-client.git}
