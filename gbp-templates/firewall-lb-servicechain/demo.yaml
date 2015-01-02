@@ -38,6 +38,7 @@ resources:
                 - type: ip_single
                   name: vip_ip
                   value: self_subnet
+            shared: True
 
 # Creating a classifier for all tcp traffic
     any_tcp_classifier:
@@ -46,6 +47,7 @@ resources:
             name: any_tcp_classifier
             protocol: tcp
             direction: in
+            shared: True
 
 # Creating redirect action
     redirect_to_chain:
@@ -54,6 +56,7 @@ resources:
             name: redirect_to_chain
             action_type: redirect
             action_value: { get_resource: sc_spec }
+            shared: False
 
 # Creating a policy rule set
     tcp_traffic_rule:
@@ -62,6 +65,7 @@ resources:
             name: tcp_traffic_rule
             policy_classifier_id: { get_resource: any_tcp_classifier }
             policy_actions: [{ get_resource: redirect_to_chain }]
+            shared: False
 
     tcp_rule_set:
         type: OS::Neutron::PolicyRuleSet
@@ -69,6 +73,7 @@ resources:
             name: tcp_rule_set
             policy_rules: [{ get_resource: tcp_traffic_rule }] 
             child_policy_rule_sets: []
+            shared: False
 
 # Create EPGs for providers and consumers
     app_ptg:
@@ -79,6 +84,7 @@ resources:
                 - policy_rule_set_id: { get_resource: tcp_rule_set }
                   policy_rule_set_scope: 
             network_service_policy_id: { get_resource: vip_ip_policy }
+            shared: False
 
     user_ptg:
         type: OS::Neutron::PolicyTargetGroup
@@ -88,6 +94,7 @@ resources:
             consumed_policy_rule_sets: 
                 - policy_rule_set_id: { get_resource: tcp_rule_set }
                   policy_rule_set_scope: 
+            shared: False
 
 # Create webserver
 
