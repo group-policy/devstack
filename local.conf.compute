@@ -1,0 +1,84 @@
+[[local|localrc]]
+ADMIN_PASSWORD=abc123
+MYSQL_PASSWORD=abc123
+RABBIT_PASSWORD=abc123
+SERVICE_PASSWORD=$ADMIN_PASSWORD
+SERVICE_TOKEN=abc123
+
+LIBVIRT_FIREWALL_DRIVER=nova.virt.firewall.NoopFirewallDriver
+Q_USE_SECGROUP=False
+Q_ML2_PLUGIN_MECHANISM_DRIVERS=odl_gbp,logger
+Q_SERVICE_PLUGIN_CLASSES=neutron.services.l3_router.l3_router_plugin.L3RouterPlugin,gbpservice.neutron.services.grouppolicy.plugin.GroupPolicyPlugin,gbpservice.neutron.services.servicechain.servicechain_plugin.ServiceChainPlugin
+ENABLE_TENANT_TUNNELS=True
+
+ODL_MGR_IP=192.168.3.13
+ODL_MGR_PORT=6653
+HOST_IP=192.168.5.14
+
+#OpenStack controller node information
+SERVICE_HOST=192.168.5.13
+Q_HOST=$SERVICE_HOST
+
+# Using group-policy branches
+# ---------------------------
+
+GIT_BASE=http://github.com
+
+#GBPSERVICE_REPO=https://review.openstack.org/stackforge/group-based-policy
+#GBPSERVICE_BRANCH=refs/changes/14/144614/11
+
+#GBPCLIENT_REPO=https://review.openstack.org/stackforge/python-group-based-policy-client
+#GBPCLIENT_BRANCH=refs/changes/56/130056/13
+
+#GBPUI_REPO=https://review.openstack.org/stackforge/group-based-policy-ui
+#GBPUI_BRANCH=refs/changes/02/136802/14
+
+#GBPHEAT_REPO=
+#GBPHEAT_BRANCH=
+
+# Enable neutron for group-policy-poc
+# -----------------------------------
+disable_all_services
+enable_service q-api
+enable_service neutron
+enable_service odlgbp
+enable_service rabbit
+enable_service n-cpu
+
+SYSLOG=True
+DEST=/opt/stack
+SCREEN_LOGDIR=$DEST/logs/screen
+LOGFILE=$DEST/logs/stack.sh.log
+SKIP_EXERCISES=volumes,trove,swift,sahara,euca,bundle,boot_from_volume,aggregates,zaqar,client-env,neutron-adv-test,floating_ips
+
+#OFFLINE=True
+
+# Group-based Policy configuration
+# Comment the lines below if you don't want to configure the datapath
+# and use the dummy driver.
+[[post-config|/etc/heat/heat.conf]]
+[DEFAULT]
+plugin_dirs=/opt/stack/gbpautomation/gbpautomation/heat
+
+[[post-config|/etc/neutron/neutron.conf]]
+[group_policy]
+policy_drivers=implicit_policy,odl
+
+[servicechain]
+servicechain_drivers = simplechain_driver
+
+[quotas]
+default_quota = -1
+quota_network = -1
+quota_subnet = -1
+quota_port = -1
+quota_security_group = -1
+quota_security_group_rule = -1
+quota_router = -1
+quota_floatingip = -1
+
+[odl_driver]
+odl_username = admin
+odl_password = admin
+odl_host = 192.168.3.13
+odl_port = 8181
