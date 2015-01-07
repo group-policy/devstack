@@ -19,6 +19,10 @@ HOST_IP=192.168.5.14
 SERVICE_HOST=192.168.5.13
 Q_HOST=$SERVICE_HOST
 
+# set this for live migration
+VNCSERVER_LISTEN=0.0.0.0
+NOVA_INSTANCES_PATH=/opt/stack/data/instances
+
 # Using group-policy branches
 # ---------------------------
 

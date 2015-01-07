@@ -15,6 +15,14 @@ ODL_MGR_IP=192.168.3.13
 ODL_MGR_PORT=6653
 HOST_IP=192.168.5.13
 
+#OpenStack controller node information
+SERVICE_HOST=192.168.5.13
+Q_HOST=$SERVICE_HOST
+
+# set this for live migration
+VNCSERVER_LISTEN=0.0.0.0
+NOVA_INSTANCES_PATH=/opt/stack/data/instances
+
 # Using group-policy branches
 # ---------------------------
 
