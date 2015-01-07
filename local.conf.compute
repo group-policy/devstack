@@ -13,14 +13,18 @@ ENABLE_TENANT_TUNNELS=True
 
 ODL_MGR_IP=192.168.3.13
 ODL_MGR_PORT=6653
-HOST_IP=192.168.5.14
+HOST_IP=192.168.5.11
 
 #OpenStack controller node information
 SERVICE_HOST=192.168.5.13
 Q_HOST=$SERVICE_HOST
 
 # set this for live migration
-VNCSERVER_LISTEN=0.0.0.0
+NOVA_VNC_ENABLED=True
+NOVNCPROXY_URL="http://$SERVICE_HOST:6080/vnc_auto.html"
+VNCSERVER_LISTEN=$HOST_IP
+VNCSERVER_PROXYCLIENT_ADDRESS=$VNCSERVER_LISTEN
+#VNCSERVER_LISTEN=0.0.0.0
 NOVA_INSTANCES_PATH=/opt/stack/data/instances
 
 # Using group-policy branches
@@ -48,6 +52,7 @@ enable_service neutron
 enable_service odlgbp
 enable_service rabbit
 enable_service n-cpu
+enable_service n-novnc
 
 SYSLOG=True
 DEST=/opt/stack
