@@ -20,7 +20,7 @@ if is_service_enabled odlgbp; then
         sudo ovs-vsctl --no-wait br-set-external-id br-int bridge-id br-int
         sudo ovs-vsctl set bridge br-int protocols=OpenFlow13
         sudo ovs-vsctl set-controller br-int tcp:$ODL_MGR_IP:$ODL_MGR_PORT
-        sudo ovs-vsctl add-port br-int br-int_vxlan0 --set Interface br-int_vxlan0 type=vxlan options:remote_ip=flow options:key=flow options:source_ip=$HOST_IP
+        sudo ovs-vsctl add-port br-int br-int_vxlan0 -- set Interface br-int_vxlan0 type=vxlan options:remote_ip=flow options:key=flow options:source_ip=$HOST_IP
         if is_service_enabled q-l3; then
             sudo ovs-vsctl set bridge br-ex protocols=OpenFlow13
             sudo ovs-vsctl set-controller br-ex tcp:$ODL_MGR_IP:$ODL_MGR_PORT
