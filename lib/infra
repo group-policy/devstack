@@ -31,7 +31,6 @@ function install_infra {
     git_clone $REQUIREMENTS_REPO $REQUIREMENTS_DIR $REQUIREMENTS_BRANCH
     sed -i 's/.*python-neutronclient.*/python-neutronclient==2.3.9/g' $REQUIREMENTS_DIR/global-requirements.txt
     echo "python-group-based-policy-client==0.9.0" >> $REQUIREMENTS_DIR/global-requirements.txt
-    echo "apicapi" >> $REQUIREMENTS_DIR/global-requirements.txt
 
     # Install pbr
     if use_library_from_git "pbr"; then
