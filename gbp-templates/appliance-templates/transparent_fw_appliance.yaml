@@ -1,0 +1,55 @@
+#!highlight yaml
+
+heat_template_version: 2013-05-23
+
+parameters:
+
+  provider_pt_name:
+    type: string
+    label: Provider PT name
+    description: Provider PT name
+
+  consumer_pt_name:
+    type: string
+    label: Consumer PT name
+    description: Consumer PT name
+
+  provider_ptg:
+    type: string
+    label: Provider PTG id
+    description: Provider PTG id
+
+  consumer_ptg:
+    type: string
+    label: Consumer PTG id
+    description: Consumer PTG id
+
+resources:
+
+# Create PTs in uset and app PTGs
+
+    provider_pt:
+        type: OS::Neutron::PolicyTarget
+        properties:
+            name: { get_param: provider_pt_name }
+            policy_target_group_id: { get_param: provider_ptg }
+
+    consumer_pt:
+        type: OS::Neutron::PolicyTarget
+        properties:
+            name: { get_param: consumer_pt_name }
+            policy_target_group_id: { get_param: provider_ptg }
+
+# Launch firewall appliance
+
+    firewall_appliance:
+        type: OS::Nova::Server
+        properties:
+            name: firewall_appliance
+            image: cirros-0.3.2-x86_64-uec
+            flavor: m1.nano
+            networks:
+                - port: {get_attr: [consumer_pt, port_id]}
+                - port: {get_attr: [provider_pt, port_id]}
+
+
