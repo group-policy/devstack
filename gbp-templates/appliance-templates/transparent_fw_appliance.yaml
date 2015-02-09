@@ -40,6 +40,37 @@ resources:
             name: { get_param: consumer_pt_name }
             policy_target_group_id: { get_param: provider_ptg }
 
+# Setup resources for management network connectivity
+
+    mgmt_l3_policy:
+        type: OS::Neutron::L3Policy
+        properties:
+            name: Mgmt_FW_L3_Policy
+            ip_pool: '172.1.0.0/24'
+            shared: False
+
+    mgmt_l2_policy:
+        type: OS::Neutron::L2Policy
+        depends_on: mgmt_l3_policy
+        properties:
+            name: Management_FW_Domain
+            l3_policy_id: { get_resource: mgmt_l3_policy }
+            shared: False
+
+    mgmt_ptg:
+        type: OS::Neutron::PolicyTargetGroup
+        depends_on: [ mgmt_l2_policy ]
+        properties:
+            name: Mgmt_FW_PTG
+            l2_policy_id: { get_resource: mgmt_l2_policy }
+            shared: False
+
+    mgmt_pt:
+        type: OS::Neutron::PolicyTarget
+        properties:
+            name: Mgmt_FW_PT
+            policy_target_group_id: { get_resource: mgmt_ptg }
+
 # Launch firewall appliance
 
     firewall_appliance:
@@ -49,7 +80,6 @@ resources:
             image: cirros-0.3.2-x86_64-uec
             flavor: m1.nano
             networks:
+                - port: {get_attr: [mgmt_pt, port_id]}
                 - port: {get_attr: [consumer_pt, port_id]}
                 - port: {get_attr: [provider_pt, port_id]}
-
-
