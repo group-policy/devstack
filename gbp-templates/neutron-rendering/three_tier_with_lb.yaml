@@ -1,0 +1,405 @@
+#!highlight yaml
+
+heat_template_version: 2013-05-23
+
+#parameters:
+#
+#  external_subnet_id:
+#    type: string
+#    label: external_subnet_id
+#    description: ID of subnet associated with external network
+
+resources:
+
+# Create loadbalancer service chain node
+    sc_lb_node:
+        type: OS::Neutron::ServiceChainNode
+        properties:
+            name: Loadbalancer_Node
+            service_type: LOADBALANCER
+            config: { get_file: lb_vip_description.template }
+
+# Tie the services into a chain
+    sc_spec:
+        type: OS::Neutron::ServiceChainSpec
+        depends_on: [ sc_lb_node ]
+        properties:
+            name: LB_Chain_Spec
+            nodes:
+                - { get_resource: sc_lb_node }
+
+# Create a network service policy
+    vip_ip_policy:
+        type: OS::Neutron::NetworkServicePolicy
+        properties:
+            name: VIP_Policy
+            network_service_params: 
+                - type: ip_single
+                  name: vip_ip
+                  value: self_subnet
+            shared: True
+
+# Creating a L3 Policy
+    l3_policy:
+        type: OS::Neutron::L3Policy
+        properties:
+            name: IP_Policy
+            shared: False
+
+# Create allow action
+    allow_action:
+        type: OS::Neutron::PolicyAction
+        properties:
+            name: Allow_Action
+            action_type: allow
+            shared: False
+
+#### Monitoring App Tier ####
+
+# Creating a classifier for monitoring traffic
+    monitoring_classifier:
+        type: OS::Neutron::PolicyClassifier
+        properties:
+            name: Monitoring_Classifier
+            protocol: tcp
+            port_range: '8080'
+            direction: in
+            shared: True
+
+# Creating Monitoring policy rule set
+    monitoring_traffic_rule:
+        type: OS::Neutron::PolicyRule
+        depends_on: [ monitoring_classifier, allow_action ]
+        properties:
+            name: Allow_Monitoring
+            policy_classifier_id: { get_resource: monitoring_classifier }
+            policy_actions: [{ get_resource: allow_action }]
+            shared: False
+
+    monitoring_rule_set:
+        type: OS::Neutron::PolicyRuleSet
+        depends_on: monitoring_traffic_rule
+        properties:
+            name: Monitoring
+            policy_rules: [{ get_resource: monitoring_traffic_rule }] 
+            child_policy_rule_sets: []
+            shared: False
+
+    monitoring_tier_l2_policy:
+        type: OS::Neutron::L2Policy
+        depends_on: l3_policy
+        properties:
+            name: Monitoring_Domain
+            l3_policy_id: { get_resource: l3_policy }
+            shared: False
+
+    monitoring_ptg:
+        type: OS::Neutron::PolicyTargetGroup
+        depends_on: [ monitoring_rule_set, monitoring_tier_l2_policy ]
+        properties:
+            name: Monitoring_PTG
+            l2_policy_id: { get_resource: monitoring_tier_l2_policy }
+            provided_policy_rule_sets: 
+                - policy_rule_set_id: { get_resource: monitoring_rule_set }
+                  policy_rule_set_scope: 
+            shared: False
+
+    monitoring_server_pt1:
+        type: OS::Neutron::PolicyTarget
+        depends_on: monitoring_ptg
+        properties:
+            name: monitoring_server_pt1
+            policy_target_group_id: { get_resource: monitoring_ptg }
+
+    monitoring_server1:
+        type: OS::Nova::Server
+        depends_on: monitoring_server_pt1
+        properties:
+            name: Monitoring_Server
+            image: cirros-0.3.2-x86_64-uec
+            flavor: m1.nano
+            networks:
+                - port: {get_attr: [monitoring_server_pt1, port_id]}
+
+#### DB Tier ####
+
+# Creating a classifier for DB traffic
+    db_tcp_classifier:
+        type: OS::Neutron::PolicyClassifier
+        properties:
+            name: MySQL_DB_TCP_Classifier
+            protocol: tcp
+            port_range: '3306'
+            direction: in
+            shared: True
+
+# Creating MySQL DB policy rule set
+    mysql_db_traffic_rule:
+        type: OS::Neutron::PolicyRule
+        depends_on: [ db_tcp_classifier, allow_action ]
+        properties:
+            name: Allow_MySQL
+            policy_classifier_id: { get_resource: db_tcp_classifier }
+            policy_actions: [{ get_resource: allow_action }]
+            shared: False
+
+    mysql_rule_set:
+        type: OS::Neutron::PolicyRuleSet
+        depends_on: mysql_db_traffic_rule
+        properties:
+            name: MySQL_DB
+            policy_rules: [{ get_resource: mysql_db_traffic_rule }] 
+            child_policy_rule_sets: []
+            shared: False
+
+    app_db_tier_l2_policy:
+        type: OS::Neutron::L2Policy
+        depends_on: l3_policy
+        properties:
+            name: App_DB_Domain
+            l3_policy_id: { get_resource: l3_policy }
+            shared: False
+
+    db_ptg:
+        type: OS::Neutron::PolicyTargetGroup
+        depends_on: [ mysql_rule_set, app_db_tier_l2_policy ]
+        properties:
+            name: DB_PTG
+            l2_policy_id: { get_resource: app_db_tier_l2_policy }
+            provided_policy_rule_sets: 
+                - policy_rule_set_id: { get_resource: mysql_rule_set }
+                  policy_rule_set_scope: 
+            consumed_policy_rule_sets: 
+                - policy_rule_set_id: { get_resource: monitoring_rule_set }
+                  policy_rule_set_scope: 
+            shared: False
+
+    db_server_pt1:
+        type: OS::Neutron::PolicyTarget
+        depends_on: db_ptg
+        properties:
+            name: db_server_pt1
+            policy_target_group_id: { get_resource: db_ptg }
+
+    db_server1:
+        type: OS::Nova::Server
+        depends_on: db_server_pt1
+        properties:
+            name: DB_Server
+            image: cirros-0.3.2-x86_64-uec
+            flavor: m1.nano
+            networks:
+                - port: {get_attr: [db_server_pt1, port_id]}
+
+#### App Tier ####
+
+# Creating a classifier for App traffic
+    app_tcp_classifier:
+        type: OS::Neutron::PolicyClassifier
+        properties:
+            name: App_TCP_Classifier
+            protocol: tcp
+            port_range: '8080'
+            direction: in
+            shared: True
+
+    app_traffic_rule:
+        type: OS::Neutron::PolicyRule
+        depends_on: [ app_tcp_classifier, allow_action ]
+        properties:
+            name: Allow_Application
+            policy_classifier_id: { get_resource: app_tcp_classifier }
+            policy_actions: [{ get_resource: allow_action }]
+            shared: False
+
+    app_rule_set:
+        type: OS::Neutron::PolicyRuleSet
+        depends_on: app_traffic_rule
+        properties:
+            name: App_Rule_Set
+            policy_rules: [{ get_resource: app_traffic_rule }] 
+            child_policy_rule_sets: []
+            shared: False
+
+    app_ptg:
+        type: OS::Neutron::PolicyTargetGroup
+        depends_on: [ app_rule_set, mysql_rule_set, app_db_tier_l2_policy ]
+        properties:
+            name: App_PTG
+            l2_policy_id: { get_resource: app_db_tier_l2_policy }
+            provided_policy_rule_sets: 
+                - policy_rule_set_id: { get_resource: app_rule_set }
+                  policy_rule_set_scope: 
+            consumed_policy_rule_sets: 
+                - policy_rule_set_id: { get_resource: mysql_rule_set }
+                  policy_rule_set_scope: 
+                - policy_rule_set_id: { get_resource: monitoring_rule_set }
+                  policy_rule_set_scope: 
+            shared: False
+
+    app_server_pt1:
+        type: OS::Neutron::PolicyTarget
+        depends_on: app_ptg
+        properties:
+            name: app_server_pt1
+            policy_target_group_id: { get_resource: app_ptg }
+
+    app_server1:
+        type: OS::Nova::Server
+        depends_on: app_server_pt1
+        properties:
+            name: App_Server
+            image: cirros-0.3.2-x86_64-uec
+            flavor: m1.nano
+            networks:
+                - port: {get_attr: [app_server_pt1, port_id]}
+
+#### Web Tier ####
+
+# Creating a classifier for http traffic
+    http_tcp_classifier:
+        type: OS::Neutron::PolicyClassifier
+        properties:
+            name: HTTP_TCP_Classifier
+            protocol: tcp
+            port_range: '80'
+            direction: in
+            shared: True
+
+# Creating redirect action
+    redirect_to_chain:
+        type: OS::Neutron::PolicyAction
+        depends_on: sc_spec
+        properties:
+            name: Redirect_LB_Chain_Action
+            action_type: redirect
+            action_value: { get_resource: sc_spec }
+            shared: False
+
+# Creating http redirect policy rule set
+    http_redirect_traffic_rule:
+        type: OS::Neutron::PolicyRule
+        depends_on: [ http_tcp_classifier, redirect_to_chain ]
+        properties:
+            name: Allow_TCP_with_Redirect_Rule
+            policy_classifier_id: { get_resource: http_tcp_classifier }
+            policy_actions: [{ get_resource: redirect_to_chain }]
+            shared: False
+
+    http_rule_set:
+        type: OS::Neutron::PolicyRuleSet
+        depends_on: http_redirect_traffic_rule
+        properties:
+            name: HTTP_TCP_Redirect_To_LB
+            policy_rules: [{ get_resource: http_redirect_traffic_rule }] 
+            child_policy_rule_sets: []
+            shared: False
+
+    web_tier_l2_policy:
+        type: OS::Neutron::L2Policy
+        depends_on: l3_policy
+        properties:
+            name: Web_Domain
+            l3_policy_id: { get_resource: l3_policy }
+            shared: False
+
+    web_ptg:
+        type: OS::Neutron::PolicyTargetGroup
+        depends_on: [ app_rule_set, http_rule_set, web_tier_l2_policy ]
+        properties:
+            name: Web_PTG
+            l2_policy_id: { get_resource: web_tier_l2_policy }
+            provided_policy_rule_sets: 
+                - policy_rule_set_id: { get_resource: http_rule_set }
+                  policy_rule_set_scope: 
+            consumed_policy_rule_sets: 
+                - policy_rule_set_id: { get_resource: app_rule_set }
+                  policy_rule_set_scope: 
+                - policy_rule_set_id: { get_resource: monitoring_rule_set }
+                  policy_rule_set_scope: 
+            network_service_policy_id: { get_resource: vip_ip_policy }
+            shared: False
+
+    web_server_pt1:
+        type: OS::Neutron::PolicyTarget
+        depends_on: web_ptg
+        properties:
+            name: web_server_pt1
+            description: 'Pool Member'
+            policy_target_group_id: { get_resource: web_ptg }
+
+    web_server_pt2:
+        type: OS::Neutron::PolicyTarget
+        depends_on: web_server_pt1
+        properties:
+            name: web_server_pt2
+            description: 'Pool Member'
+            policy_target_group_id: { get_resource: web_ptg }
+
+    web_server1:
+        type: OS::Nova::Server
+        depends_on: web_server_pt1
+        properties:
+            name: Web_Real_Server_1
+            image: cirros-0.3.2-x86_64-uec
+            flavor: m1.nano
+            networks:
+                - port: {get_attr: [web_server_pt1, port_id]}
+
+    web_server2:
+        type: OS::Nova::Server
+        depends_on: web_server_pt2
+        properties:
+            name: Web_Real_Server_2
+            image: cirros-0.3.2-x86_64-uec
+            flavor: m1.nano
+            networks:
+                - port: {get_attr: [web_server_pt2, port_id]}
+
+#### Outside Tier ####
+
+    outside_tier_l2_policy:
+        type: OS::Neutron::L2Policy
+        depends_on: l3_policy
+        properties:
+            name: Outside_Domain
+            l3_policy_id: { get_resource: l3_policy }
+            shared: False
+
+    outside_ptg:
+        type: OS::Neutron::PolicyTargetGroup
+        depends_on: [ http_rule_set, outside_tier_l2_policy ]
+        properties:
+            name: Outside_PTG
+            l2_policy_id: { get_resource: outside_tier_l2_policy }
+            consumed_policy_rule_sets: 
+                - policy_rule_set_id: { get_resource: http_rule_set }
+                  policy_rule_set_scope: 
+            shared: False
+
+#### Setup resources for management network connectivity ####
+
+    mgmt_l3_policy:
+        type: OS::Neutron::L3Policy
+        properties:
+            name: Mgmt_L3_Policy
+            ip_pool: '172.1.0.0/24'
+            shared: False
+
+    mgmt_l2_policy:
+        type: OS::Neutron::L2Policy
+        depends_on: mgmt_l3_policy
+        properties:
+            name: Management_Domain
+            l3_policy_id: { get_resource: mgmt_l3_policy }
+            shared: False
+
+    mgmt_ptg:
+        type: OS::Neutron::PolicyTargetGroup
+        depends_on: [ mgmt_l2_policy ]
+        properties:
+            name: 'Management PTG'
+            l2_policy_id: { get_resource: mgmt_l2_policy }
+            shared: False
+
+
