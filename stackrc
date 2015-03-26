@@ -7,7 +7,7 @@ RC_DIR=$(cd $(dirname "${BASH_SOURCE:-$0}") && pwd)
 source $RC_DIR/functions
 
 # Destination path for installation
-DEST=/opt/stack
+DEST=/opt/stack/new
 
 # Destination for working data
 DATA_DIR=${DEST}/data

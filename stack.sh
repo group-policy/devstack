@@ -777,7 +777,6 @@ if is_service_enabled neutron nova horizon; then
 fi
 if is_service_enabled heat horizon; then
     install_heatclient
-    install_gbpheat
 fi
 
 # Install middleware
@@ -824,7 +823,7 @@ if is_service_enabled cinder; then
 fi
 
 if is_service_enabled neutron; then
-    install_gbpservice
+    #install_gbpservice
     install_neutron
     install_neutron_third_party
 fi
@@ -842,7 +841,6 @@ if is_service_enabled horizon; then
     # dashboard
     install_horizon
     configure_horizon
-    install_gbpui
 fi
 
 if is_service_enabled ceilometer; then
@@ -1508,7 +1506,7 @@ fi
 echo_summary "stack.sh completed in $SECONDS seconds."
 
 # Uncomment this to enable running exercises at the end of devstack install
-#./exercise.sh
+./exercise.sh
 
 # Restore/close logging file descriptors
 exec 1>&3
