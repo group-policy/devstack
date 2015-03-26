@@ -754,7 +754,6 @@ if is_service_enabled neutron nova horizon; then
 fi
 if is_service_enabled heat horizon; then
     install_heatclient
-    install_gbpheat
 fi
 
 # Install middleware
@@ -797,7 +796,7 @@ fi
 
 if is_service_enabled neutron; then
     # Network service
-    install_gbpservice
+    #install_gbpservice
     stack_install_service neutron
     install_neutron_third_party
 fi
@@ -815,7 +814,6 @@ if is_service_enabled horizon; then
     # dashboard
     stack_install_service horizon
     configure_horizon
-    install_gbpui
 fi
 
 if is_service_enabled ceilometer; then
