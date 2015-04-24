@@ -505,7 +505,7 @@ source $TOP_DIR/lib/rpc_backend
 check_rpc_backend
 
 # Service to enable with SSL if ``USE_SSL`` is True
-SSL_ENABLED_SERVICES="key,nova,cinder,glance,s-proxy,neutron"
+SSL_ENABLED_SERVICES="key,nova,cinder,glance,s-proxy,neutron,sahara"
 
 if is_service_enabled tls-proxy && [ "$USE_SSL" == "True" ]; then
     die $LINENO "tls-proxy and SSL are mutually exclusive"
@@ -513,6 +513,9 @@ fi
 
 # Configure Projects
 # ==================
+
+# Clone all external plugins
+fetch_plugins
 
 # Plugin Phase 0: override_defaults - allow pluggins to override
 # defaults before other services are run
@@ -539,9 +542,6 @@ source $TOP_DIR/lib/heat
 source $TOP_DIR/lib/neutron-legacy
 source $TOP_DIR/lib/ldap
 source $TOP_DIR/lib/dstat
-
-# Clone all external plugins
-fetch_plugins
 
 # Extras Source
 # --------------
@@ -714,6 +714,9 @@ fi
 # Extras Pre-install
 # ------------------
 
+# Install required infra support libraries
+install_infra
+
 # Phase: pre-install
 run_phase stack pre-install
 
@@ -732,9 +735,6 @@ fi
 # ----------------------------
 
 echo_summary "Installing OpenStack project source"
-
-# Install required infra support libraries
-install_infra
 
 # Install Oslo libraries
 install_oslo
@@ -847,7 +847,7 @@ if use_library_from_git "python-openstackclient"; then
     git_clone_by_name "python-openstackclient"
     setup_dev_lib "python-openstackclient"
 else
-    pip_install 'python-openstackclient>=1.0.2'
+    pip_install_gr python-openstackclient
 fi
 
 if [[ $TRACK_DEPENDS = True ]]; then
@@ -1173,7 +1173,7 @@ fi
 # See https://help.ubuntu.com/community/CloudInit for more on ``cloud-init``
 
 if is_service_enabled g-reg; then
-    TOKEN=$(keystone token-get | grep ' id ' | get_field 2)
+    TOKEN=$(openstack token issue -c id -f value)
     die_if_not_set $LINENO TOKEN "Keystone fail to get token"
 
     echo_summary "Uploading images"
@@ -1214,6 +1214,10 @@ if is_service_enabled q-svc; then
 elif is_service_enabled $DATABASE_BACKENDS && is_service_enabled n-net; then
     NM_CONF=${NOVA_CONF}
     if is_service_enabled n-cell; then
+        # Both cells should have the same network uuid for server create
+        if [[ ! "$NETWORK_CREATE_ARGS" =~ "--uuid" ]]; then
+            NETWORK_CREATE_ARGS="$NETWORK_CREATE_ARGS --uuid $(uuidgen)"
+        fi
         # Create a small network in the API cell
         $NOVA_BIN_DIR/nova-manage --config-file $NM_CONF network create "$PRIVATE_NETWORK_NAME" $FIXED_RANGE 1 $FIXED_NETWORK_SIZE $NETWORK_CREATE_ARGS
         # Everything else should go in the child cell

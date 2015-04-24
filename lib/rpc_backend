@@ -141,7 +141,7 @@ function install_rpc_backend {
         # TODO(kgiusti) can remove once python qpid bindings are
         # available on all supported platforms _and_ pyngus is added
         # to the requirements.txt file in oslo.messaging
-        pip_install pyngus
+        pip_install_gr pyngus
     fi
 
     if is_service_enabled rabbit; then
@@ -200,10 +200,7 @@ function restart_rpc_backend {
 
             [[ $i -eq "10" ]] && die $LINENO "Failed to set rabbitmq password"
 
-            if is_fedora || is_suse; then
-                # service is not started by default
-                restart_service rabbitmq-server
-            fi
+            restart_service rabbitmq-server
 
             rabbit_setuser "$RABBIT_USERID" "$RABBIT_PASSWORD" || rc=$?
             if [ $rc -ne 0 ]; then
@@ -250,8 +247,7 @@ function iniset_rpc_backend {
         iniset $file $section rpc_backend "zmq"
         iniset $file $section rpc_zmq_host `hostname`
         if [ "$ZEROMQ_MATCHMAKER" == "redis" ]; then
-            iniset $file $section rpc_zmq_matchmaker \
-                oslo.messaging._drivers.matchmaker_redis.MatchMakerRedis
+            iniset $file $section rpc_zmq_matchmaker "redis"
             MATCHMAKER_REDIS_HOST=${MATCHMAKER_REDIS_HOST:-127.0.0.1}
             iniset $file matchmaker_redis host $MATCHMAKER_REDIS_HOST
         else
@@ -274,6 +270,12 @@ function iniset_rpc_backend {
         iniset $file oslo_messaging_rabbit rabbit_hosts $RABBIT_HOST
         iniset $file oslo_messaging_rabbit rabbit_password $RABBIT_PASSWORD
         iniset $file oslo_messaging_rabbit rabbit_userid $RABBIT_USERID
+        if [ -n "$RABBIT_HEARTBEAT_TIMEOUT_THRESHOLD" ]; then
+            iniset $file oslo_messaging_rabbit heartbeat_timeout_threshold $RABBIT_HEARTBEAT_TIMEOUT_THRESHOLD
+        fi
+        if [ -n "$RABBIT_HEARTBEAT_RATE" ]; then
+            iniset $file oslo_messaging_rabbit heartbeat_rate $RABBIT_HEARTBEAT_RATE
+        fi
     fi
 }
 

@@ -229,10 +229,10 @@ Additional Users
 ----------------
 
 DevStack creates two OpenStack users (``admin`` and ``demo``) and two
-tenants (also ``admin`` and ``demo``). ``admin`` is exactly what it
+projects (also ``admin`` and ``demo``). ``admin`` is exactly what it
 sounds like, a privileged administrative account that is a member of
-both the ``admin`` and ``demo`` tenants. ``demo`` is a normal user
-account that is only a member of the ``demo`` tenant. Creating
+both the ``admin`` and ``demo`` projects. ``demo`` is a normal user
+account that is only a member of the ``demo`` project. Creating
 additional OpenStack users can be done through the dashboard, sometimes
 it is easier to do them in bulk from a script, especially since they get
 blown away every time ``stack.sh`` runs. The following steps are ripe
@@ -243,36 +243,36 @@ for scripting:
     # Get admin creds
     . openrc admin admin
 
-    # List existing tenants
-    keystone tenant-list
+    # List existing projects
+    openstack project list
 
     # List existing users
-    keystone user-list
+    openstack user list
 
-    # Add a user and tenant
+    # Add a user and project
     NAME=bob
     PASSWORD=BigSecrete
-    TENANT=$NAME
-    keystone tenant-create --name=$NAME
-    keystone user-create --name=$NAME --pass=$PASSWORD
-    keystone user-role-add --user-id=<bob-user-id> --tenant-id=<bob-tenant-id> --role-id=<member-role-id>
-    # member-role-id comes from the existing member role created by stack.sh
-    # keystone role-list
+    PROJECT=$NAME
+    openstack project create $PROJECT
+    openstack user create $NAME --password=$PASSWORD --project $PROJECT
+    openstack role add Member --user $NAME --project $PROJECT
+    # The Member role is created by stack.sh
+    # openstack role list
 
 Swift
 -----
 
-Swift requires a significant amount of resources and is disabled by
-default in DevStack. The support in DevStack is geared toward a minimal
-installation but can be used for testing. To implement a true multi-node
-test of Swift required more than DevStack provides. Enabling it is as
+Swift, OpenStack Object Storage, requires a significant amount of resources
+and is disabled by default in DevStack. The support in DevStack is geared 
+toward a minimal installation but can be used for testing. To implement a
+true multi-node test of swift, additional steps will be required. Enabling it is as
 simple as enabling the ``swift`` service in ``local.conf``:
 
 ::
 
     enable_service s-proxy s-object s-container s-account
 
-Swift will put its data files in ``SWIFT_DATA_DIR`` (default
+Swift, OpenStack Object Storage, will put its data files in ``SWIFT_DATA_DIR`` (default
 ``/opt/stack/data/swift``). The size of the data 'partition' created
 (really a loop-mounted file) is set by ``SWIFT_LOOPBACK_DISK_SIZE``. The
 Swift config files are located in ``SWIFT_CONF_DIR`` (default
@@ -334,14 +334,14 @@ After making changes to the repository or branch, if ``RECLONE`` is not
 set in ``localrc`` it may be necessary to remove the corresponding
 directory from ``/opt/stack`` to force git to re-clone the repository.
 
-For example, to pull Nova from a proposed release candidate in the
-primary Nova repository:
+For example, to pull nova, OpenStack Compute, from a proposed release candidate
+in the primary nova repository:
 
 ::
 
     NOVA_BRANCH=rc-proposed
 
-To pull Glance from an experimental fork:
+To pull glance, OpenStack Image service, from an experimental fork:
 
 ::
 

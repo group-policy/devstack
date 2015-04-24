@@ -264,10 +264,10 @@ To change this, set the `Q_AGENT` variable to the agent you want to run
 
 # Heat
 
-Heat is enabled by default (see `stackrc` file). To disable it explicitly
+Heat is disabled by default (see `stackrc` file). To enable it explicitly
 you'll need the following settings in your `localrc` section:
 
-    disable_service heat h-api h-api-cfn h-api-cw h-eng
+    enable_service heat h-api h-api-cfn h-api-cw h-eng
 
 Heat can also run in standalone mode, and be configured to orchestrate
 on an external OpenStack cloud. To launch only Heat in standalone mode
@@ -333,7 +333,7 @@ will balance VMs across hosts:
 You can then run many compute nodes, each of which should have a `stackrc`
 which includes the following, with the IP address of the above controller node:
 
-    ENABLED_SERVICES=n-cpu,rabbit,g-api,neutron,q-agt
+    ENABLED_SERVICES=n-cpu,rabbit,neutron,q-agt
     SERVICE_HOST=[IP of controller node]
     MYSQL_HOST=$SERVICE_HOST
     RABBIT_HOST=$SERVICE_HOST
