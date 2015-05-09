@@ -49,6 +49,12 @@ function install_gbpclient {
     sudo install -D -m 0644 -o $STACK_USER {$GBPCLIENT_DIR/tools/,/etc/bash_completion.d/}gbp.bash_completion
 }
 
+function install_gbpheat {
+    git_clone $GBPHEAT_REPO $GBPHEAT_DIR $GBPHEAT_BRANCH
+    setup_develop $GBPHEAT_DIR
+}
+
+
 # Restore xtrace
 $XTRACE
 
