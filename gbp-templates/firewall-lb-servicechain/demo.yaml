@@ -6,7 +6,7 @@ resources:
 
 # Create firewall service chain node
     sc_fw_node:
-        type: OS::Neutron::ServiceChainNode
+        type: OS::ServiceChain::ServiceChainNode
         properties:
             name: SvcChainFWNode
             service_type: FIREWALL
@@ -14,7 +14,7 @@ resources:
 
 # Create loadbalancer service chain node
     sc_lb_node:
-        type: OS::Neutron::ServiceChainNode
+        type: OS::ServiceChain::ServiceChainNode
         properties:
             name: SvcChainLBNode
             service_type: LOADBALANCER
@@ -22,7 +22,7 @@ resources:
 
 # Tie the services into a chain
     sc_spec:
-        type: OS::Neutron::ServiceChainSpec
+        type: OS::ServiceChain::ServiceChainSpec
         properties:
             name: svc_chain_spec
             nodes:
@@ -31,9 +31,10 @@ resources:
 
 # Create a network service policy
     vip_ip_policy:
-        type: OS::Neutron::NetworkServicePolicy
+        type: OS::GroupBasedPolicy::NetworkServicePolicy
         properties:
             name: vip_ip_policy
+            shared: False
             network_service_params: 
                 - type: ip_single
                   name: vip_ip
@@ -41,58 +42,64 @@ resources:
 
 # Creating a classifier for all tcp traffic
     any_tcp_classifier:
-        type: OS::Neutron::PolicyClassifier
+        type: OS::GroupBasedPolicy::PolicyClassifier
         properties:
             name: any_tcp_classifier
             protocol: tcp
             direction: in
+            shared: False
 
 # Creating redirect action
     redirect_to_chain:
-        type: OS::Neutron::PolicyAction
+        type: OS::GroupBasedPolicy::PolicyAction
         properties:
             name: redirect_to_chain
             action_type: redirect
             action_value: { get_resource: sc_spec }
+            shared: False
 
 # Creating a policy rule set
     tcp_traffic_rule:
-        type: OS::Neutron::PolicyRule
+        type: OS::GroupBasedPolicy::PolicyRule
         properties:
             name: tcp_traffic_rule
             policy_classifier_id: { get_resource: any_tcp_classifier }
             policy_actions: [{ get_resource: redirect_to_chain }]
+            shared: False
 
     tcp_rule_set:
-        type: OS::Neutron::PolicyRuleSet
+        type: OS::GroupBasedPolicy::PolicyRuleSet
         properties:
             name: tcp_rule_set
             policy_rules: [{ get_resource: tcp_traffic_rule }] 
             child_policy_rule_sets: []
+            shared: False
 
 # Create EPGs for providers and consumers
     app_ptg:
-        type: OS::Neutron::PolicyTargetGroup
+        type: OS::GroupBasedPolicy::PolicyTargetGroup
         properties:
             name: app_ptg
             provided_policy_rule_sets: 
                 - policy_rule_set_id: { get_resource: tcp_rule_set }
                   policy_rule_set_scope: 
             network_service_policy_id: { get_resource: vip_ip_policy }
+            shared: False
 
     user_ptg:
-        type: OS::Neutron::PolicyTargetGroup
+        type: OS::GroupBasedPolicy::PolicyTargetGroup
         depends_on: app_server_pt
         properties:
             name: user_ptg
             consumed_policy_rule_sets: 
                 - policy_rule_set_id: { get_resource: tcp_rule_set }
                   policy_rule_set_scope: 
+            shared: False
 
 # Create webserver
 
     app_server_pt:
-        type: OS::Neutron::PolicyTarget
+        type: OS::GroupBasedPolicy::PolicyTarget
         properties:
             name: app_server_pt
             policy_target_group_id: { get_resource: app_ptg }
@@ -109,7 +116,7 @@ resources:
 # Create a user
 
     user_server_pt:
-        type: OS::Neutron::PolicyTarget
+        type: OS::GroupBasedPolicy::PolicyTarget
         properties:
             name: user_server_pt
             policy_target_group_id: { get_resource: user_ptg }
