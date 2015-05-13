@@ -21,6 +21,7 @@ GBPHEAT_DIR=$DEST/gbpautomation
 GBPUI_DIR=$DEST/gbpui
 NEUTRON_CONF_DIR=/etc/neutron
 NEUTRON_CONF=$NEUTRON_CONF_DIR/neutron.conf
+GBP_CONF_DIR=/etc/gbp
 
 # Save trace setting
 XTRACE=$(set +o | grep xtrace)
@@ -34,6 +35,7 @@ set +o xtrace
 function init_gbpservice {
     # Run GBP db migrations
     gbp-db-manage --config-file $NEUTRON_CONF --config-file /$Q_PLUGIN_CONF_FILE upgrade head
+    iniset $NEUTRON_CONF DEFAULT policy_dirs $GBP_CONF_DIR
 }
 
 # install_gbpservice() - Collect source and prepare
@@ -41,6 +43,9 @@ function install_gbpservice {
     git_clone $GBPSERVICE_REPO $GBPSERVICE_DIR $GBPSERVICE_BRANCH
     sed -i '/gbptestneutron/d' $GBPSERVICE_DIR/test-requirements.txt
     setup_develop $GBPSERVICE_DIR
+    sudo mkdir -p /etc/gbp
+    sudo cp -f $GBPSERVICE_DIR/etc/policy.json $GBP_CONF_DIR/gbp-policy.json
+    sudo ln -nfs /etc/neutron/policy.json $GBP_CONF_DIR/policy.json
 }
 
 # install_gbpclient() - Collect source and prepare
