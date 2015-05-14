@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # lib/gbp
 # functions - functions specific to group-based-policy
 
@@ -23,6 +25,7 @@ NEUTRON_CONF_DIR=/etc/neutron
 NEUTRON_CONF=$NEUTRON_CONF_DIR/neutron.conf
 GBP_CONF_DIR=/etc/gbp
 
+GBP_CREATE_INITIAL_MODEL=${GBP_CREATE_INITIAL_MODEL:-True}
 # Save trace setting
 XTRACE=$(set +o | grep xtrace)
 set +o xtrace
@@ -68,6 +71,49 @@ function install_gbpui {
     ln -sf $GBPUI_DIR/gbpui/_*project*.py $HORIZON_DIR/openstack_dashboard/enabled
 }
 
+function create_gbp_initial_model {
+    TENANT_ID=$(openstack project list | grep " demo " | get_field 1)
+    die_if_not_set $LINENO TENANT_ID "Failure retrieving TENANT_ID for demo"
+
+    # Create Neutron external network and Subnet
+    EXT_NET_ID=$(neutron net-create "$PUBLIC_NETWORK_NAME" -- --router:external=True --shared | grep ' id ' | get_field 2)
+    die_if_not_set $LINENO EXT_NET_ID "Failure creating EXT_NET_ID for $PUBLIC_NETWORK_NAME"
+    if [[ "$IP_VERSION" =~ 4.* ]]; then
+        EXT_SUB_ID=$(neutron subnet-create --tenant_id $TENANT_ID --name $PUBLIC_SUBNET_NAME --gateway $PUBLIC_NETWORK_GATEWAY --ip_version 4 ${Q_FLOATING_ALLOCATION_POOL:+--allocation-pool $Q_FLOATING_ALLOCATION_POOL} $EXT_NET_ID $FLOATING_RANGE | grep ' id ' | get_field 2)
+    fi
+    if [[ "$IP_VERSION" =~ .*6 ]]; then
+        EXT_SUB_ID=$(neutron subnet-create --tenant_id $TENANT_ID --name $IPV6_PUBLIC_SUBNET_NAME --gateway $IPV6_PUBLIC_NETWORK_GATEWAY --ip_version 6 $EXT_NET_ID $IPV6_PUBLIC_RANGE | grep ' id ' | get_field 2)
+    fi
+    die_if_not_set $LINENO EXT_SUB_ID "Failure creating EXT_SUB_ID"
+
+    # Create default external segment
+    EXT_SEG_ID=$(gbp external-segment-create default --subnet_id $EXT_SUB_ID --shared True | grep ' id ' | get_field 2)
+    die_if_not_set $LINENO EXT_SEG_ID "Failure creating EXT_NET_ID for default"
+
+    # Create shared allow action
+    ALLOW_ACTION_ID=$(gbp policy-action-create allow --action-type allow --shared True | grep ' id ' | get_field 2)
+    die_if_not_set $LINENO ALLOW_ACTION_ID "Failure creating ALLOW_ACTION_ID for allow"
+
+    # Create icmp classifier
+    ICMP_CLASS_ID=$(gbp policy-classifier-create icmp-bi --protocol icmp --direction bi --shared True | grep ' id ' | get_field 2)
+    die_if_not_set $LINENO ICMP_CLASS_ID "Failure creating ICMP_CLASS_ID for icmp-bi"
+
+    # Create ssh classifier
+    SSH_CLASS_ID=$(gbp policy-classifier-create ssh-bi --protocol tcp --port-range 22 --direction bi --shared True | grep ' id ' | get_field 2)
+    die_if_not_set $LINENO SSH_CLASS_ID "Failure creating SSH_CLASS_ID for ssh-bi"
+
+    # Create icmp rule
+    ICMP_RULE_ID=$(gbp policy-rule-create icmp-bi-allow --classifier $ICMP_CLASS_ID --actions $ALLOW_ACTION_ID --shared True | grep ' id ' | get_field 2)
+    die_if_not_set $LINENO ICMP_RULE_ID "Failure creating ICMP_RULE_ID for icmp-bi-allow"
+
+    # Create ssh rule
+    SSH_RULE_ID=$(gbp policy-rule-create ssh-bi-allow --classifier $SSH_CLASS_ID --actions $ALLOW_ACTION_ID --shared True | grep ' id ' | get_field 2)
+    die_if_not_set $LINENO SSH_RULE_ID "Failure creating SSH_RULE_ID for ssh-bi-allow"
+
+    # Create network service policy
+    NSP_ID=$(gbp network-service-policy-create --network-service-params type=ip_single,name=vip_ip,value=self_subnet vip_ip_policy)
+    die_if_not_set $LINENO NSP_ID "Failure creating NSP_ID for vip_ip_policy"
+}
 
 # Restore xtrace
 $XTRACE

@@ -44,11 +44,11 @@ function confirm_server_active {
 }
 
 # Create allow action that can used in several rules
-gbp policy-action-create allow --action-type allow
+gbp policy-action-create allow-traffic --action-type allow
 
 # Create ICMP rule
 gbp policy-classifier-create icmp-traffic --protocol icmp --direction bi
-gbp policy-rule-create ping-policy-rule --classifier icmp-traffic --actions allow
+gbp policy-rule-create ping-policy-rule --classifier icmp-traffic --actions allow-traffic
 
 # Create SSH Rule (Optional)
 # gbp policy-classifier-create ssh-traffic --protocol tcp --port-range 22 --direction bi
@@ -56,11 +56,11 @@ gbp policy-rule-create ping-policy-rule --classifier icmp-traffic --actions allo
 
 # Create HTTP Rule
 gbp policy-classifier-create web-traffic --protocol tcp --port-range 80 --direction in
-gbp policy-rule-create web-policy-rule --classifier web-traffic --actions allow
+gbp policy-rule-create web-policy-rule --classifier web-traffic --actions allow-traffic
 
 # Create HTTPs Rule
 gbp policy-classifier-create secure-web-traffic --protocol tcp --port-range 443 --direction in
-gbp policy-rule-create secure-web-policy-rule --classifier secure-web-traffic --actions allow
+gbp policy-rule-create secure-web-policy-rule --classifier secure-web-traffic --actions allow-traffic
 
 # ICMP policy-rule-set
 gbp policy-rule-set-create icmp-policy-rule-set --policy-rules ping-policy-rule
@@ -131,7 +131,7 @@ gbp policy-classifier-delete secure-web-traffic
 gbp policy-classifier-delete web-traffic
 gbp policy-classifier-delete icmp-traffic
 
-gbp policy-action-delete allow
+gbp policy-action-delete allow-traffic
 
 set +o xtrace
 echo "*********************************************************************"

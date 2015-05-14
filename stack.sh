@@ -46,6 +46,7 @@ if [[ -n "$NOUNSET" ]]; then
     set -o nounset
 fi
 
+RUN_EXERCISES=${RUN_EXERCISES:-True}
 
 # Configuration
 # =============
@@ -1249,6 +1250,10 @@ if is_service_enabled q-svc && [[ "$NEUTRON_CREATE_INITIAL_NETWORKS" == "True" ]
     create_neutron_initial_network
     setup_neutron_debug
 fi
+if is_service_enabled q-svc && [[ "$GBP_CREATE_INITIAL_MODEL" == "True" ]]; then
+    echo_summary "Creating initial gbp elements"
+    create_gbp_initial_model
+fi
 if is_service_enabled nova; then
     echo_summary "Starting Nova"
     start_nova
@@ -1409,7 +1414,9 @@ fi
 # Indicate how long this took to run (bash maintained variable ``SECONDS``)
 echo_summary "stack.sh completed in $SECONDS seconds."
 
-./exercise.sh
+if [[ "$RUN_EXERCISES" == "True" ]]; then
+    ./exercise.sh
+fi
 
 # Restore/close logging file descriptors
 exec 1>&3
