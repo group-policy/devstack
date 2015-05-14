@@ -111,7 +111,7 @@ function create_gbp_initial_model {
     die_if_not_set $LINENO SSH_RULE_ID "Failure creating SSH_RULE_ID for ssh-bi-allow"
 
     # Create network service policy
-    NSP_ID=$(gbp network-service-policy-create --network-service-params type=ip_single,name=vip_ip,value=self_subnet vip_ip_policy)
+    NSP_ID=$(gbp network-service-policy-create vip-ip-policy --network-service-params type=ip_single,name=vip_ip,value=self_subnet --shared True | grep ' id ' | get_field 2)
     die_if_not_set $LINENO NSP_ID "Failure creating NSP_ID for vip_ip_policy"
 }
 
