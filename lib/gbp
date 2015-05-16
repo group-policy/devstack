@@ -87,7 +87,7 @@ function create_gbp_initial_model {
     die_if_not_set $LINENO EXT_SUB_ID "Failure creating EXT_SUB_ID"
 
     # Create default external segment
-    EXT_SEG_ID=$(gbp external-segment-create default --subnet_id $EXT_SUB_ID --shared True | grep ' id ' | get_field 2)
+    EXT_SEG_ID=$(gbp external-segment-create default --subnet_id $EXT_SUB_ID --external-route destination=0.0.0.0/0,nexthop='' --shared True | grep ' id ' | get_field 2)
     die_if_not_set $LINENO EXT_SEG_ID "Failure creating EXT_NET_ID for default"
 
     # Create shared allow action
