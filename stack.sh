@@ -541,7 +541,6 @@ source $TOP_DIR/lib/ceilometer
 source $TOP_DIR/lib/heat
 source $TOP_DIR/lib/neutron-legacy
 source $TOP_DIR/lib/gbp
-source $TOP_DIR/lib/baremetal
 source $TOP_DIR/lib/ldap
 source $TOP_DIR/lib/dstat
 
