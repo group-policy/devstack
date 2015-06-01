@@ -45,8 +45,18 @@ function confirm_server_active {
 
 
 EXT_NET_ID=$(neutron net-list --router:external -c id | grep -v id | awk '{print $2}' )
+EXT_NET_TO_BE_CLEANED_UP=false
 
-EXT_SUBNET_ID=$(neutron net-show $EXT_NET_ID | grep subnets | awk '{print $4}' )
+if [ -z "$EXT_NET_ID" ] ; then
+    EXT_NET_ID=$(neutron net-create "$PUBLIC_NETWORK_NAME" -- --router:external=True | grep ' id ' | get_field 2)
+    EXT_SUBNET_ID=$(neutron subnet-create --ip_version 4 --gateway 172.16.73.1 --name public-subnet $EXT_NET_ID 172.16.73.0/24 | grep ' id ' | get_field 2)
+    EXT_NET_TO_BE_CLEANED_UP=true
+else
+    EXT_NET_ID=$(neutron net-list --router:external -c id | grep -v id | awk '{print $2}' )
+    EXT_SUBNET_ID=$(neutron net-show $EXT_NET_ID | grep subnets | awk '{print $4}' )
+fi
+
+die_if_not_set $LINENO EXT_SUBNET_ID "Failure creating external network"
 
 EXT_SUBNET_CIDR=$(neutron subnet-show $EXT_SUBNET_ID | grep cidr | awk '{print $4}' )
 
@@ -94,6 +104,7 @@ die_if_not_set $LINENO PT1_FIXED_IP "Floating IP not assigned to policy target"
 
 #############Cleanup###############
 
+
 gbp policy-target-delete $PT2_ID
 gbp policy-target-delete $PT1_ID
 gbp group-delete $PTG_ID
@@ -101,7 +112,9 @@ gbp network-service-policy-delete $NSP_ID
 gbp nat-pool-delete $NAT_POOL_ID
 gbp external-segment-delete $EXT_SEGMENT_ID
 
-
+if [ "$EXT_NET_TO_BE_CLEANED_UP" = true ] ; then
+    neutron net-delete $EXT_NET_ID
+fi
 
 set +o xtrace
 echo "*********************************************************************"
