@@ -31,6 +31,10 @@ REQUIREMENTS_DIR=$DEST/requirements
 function install_infra {
     local PIP_VIRTUAL_ENV="$REQUIREMENTS_DIR/.venv"
 
+    # Unset the PIP_VIRTUAL_ENV so that PBR does not end up trapped
+    # down the VENV well
+    unset PIP_VIRTUAL_ENV
+
     # Install pbr
     if use_library_from_git "pbr"; then
         git_clone_by_name "pbr"
