@@ -43,8 +43,11 @@ function confirm_server_active {
     fi
 }
 
-gbp  servicechain-node-create loadbalancer-node --template-file $TOP_DIR/gbp-templates/firewall-lb-servicechain/fw.template  --servicetype FIREWALL
-gbp  servicechain-node-create firewall-node --template-file $TOP_DIR/gbp-templates/firewall-lb-servicechain/lb.template  --servicetype LOADBALANCER
+gbp service-profile-create --vendor default --insertion-mode l3 --servicetype FIREWALL fw_profile
+gbp service-profile-create --vendor default --insertion-mode l3 --servicetype LOADBALANCER lb_profile
+
+gbp  servicechain-node-create loadbalancer-node --template-file $TOP_DIR/gbp-templates/firewall-lb-servicechain/lb.template --service-profile lb_profile
+gbp  servicechain-node-create firewall-node --template-file $TOP_DIR/gbp-templates/firewall-lb-servicechain/fw.template  --service-profile fw_profile
 
 gbp servicechain-spec-create firewall-loadbalancer-spec --description spec --nodes "firewall-node loadbalancer-node"
 
