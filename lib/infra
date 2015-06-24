@@ -42,6 +42,12 @@ function install_infra {
         # in via system packages.
         pip_install "-U" "pbr"
     fi
+
+    # bring down global requirements
+    git_clone $REQUIREMENTS_REPO $REQUIREMENTS_DIR $REQUIREMENTS_BRANCH
+    [ ! -d $PIP_VIRTUAL_ENV ] && virtualenv $PIP_VIRTUAL_ENV
+    PIP_VIRTUAL_ENV=$PIP_VIRTUAL_ENV pip_install -U pbr
+    PIP_VIRTUAL_ENV=$PIP_VIRTUAL_ENV pip_install $REQUIREMENTS_DIR
 }
 
 # Restore xtrace
