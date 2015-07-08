@@ -539,6 +539,7 @@ source $TOP_DIR/lib/cinder
 source $TOP_DIR/lib/swift
 source $TOP_DIR/lib/ceilometer
 source $TOP_DIR/lib/heat
+source $TOP_DIR/lib/gbp
 source $TOP_DIR/lib/neutron-legacy
 source $TOP_DIR/lib/gbp
 source $TOP_DIR/lib/ldap
@@ -742,7 +743,7 @@ install_oslo
 # Install client libraries
 install_keystoneclient
 install_glanceclient
-install_cinderclient
+#install_cinderclient
 install_novaclient
 if is_service_enabled swift glance horizon; then
     install_swiftclient

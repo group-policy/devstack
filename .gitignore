@@ -15,9 +15,9 @@ files/*.qcow2
 files/*.img
 files/images
 files/pip-*
+#local.conf
 files/get-pip.py*
 files/ir-deploy*
-#local.conf
 local.sh
 localrc
 proto

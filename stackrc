@@ -250,7 +250,6 @@ SWIFT_BRANCH=${SWIFT_BRANCH:-stable/kilo}
 TROVE_REPO=${TROVE_REPO:-${GIT_BASE}/openstack/trove.git}
 TROVE_BRANCH=${TROVE_BRANCH:-stable/kilo}
 
-
 ##############
 #
 #  Testing Components
@@ -325,7 +324,6 @@ GITREPO["python-openstackclient"]=${OPENSTACKCLIENT_REPO:-${GIT_BASE}/openstack/
 GITBRANCH["python-openstackclient"]=${OPENSTACKCLIENT_BRANCH:-master}
 # this doesn't exist in a lib file, so set it here
 GITDIR["python-openstackclient"]=$DEST/python-openstackclient
-
 
 ###################
 #

@@ -316,6 +316,9 @@ function configure_tempest {
         iniset $TEMPEST_CONFIG identity ca_certificates_file $SSL_BUNDLE_FILE
     fi
 
+    # Identity Features
+    iniset $TEMPEST_CONFIG identity-feature-enabled xml_api True
+
     # Image
     # We want to be able to override this variable in the gate to avoid
     # doing an external HTTP fetch for this test.
