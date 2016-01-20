@@ -175,19 +175,19 @@ GIT_BASE=${GIT_BASE:-git://git.openstack.org}
 #
 ##############
 # group-based-policy service
-GBPSERVICE_REPO=${GBPSERVICE_REPO:-${GIT_BASE}/stackforge/group-based-policy.git}
+GBPSERVICE_REPO=${GBPSERVICE_REPO:-${GIT_BASE}/openstack/group-based-policy.git}
 GBPSERVICE_BRANCH=${GBPSERVICE_BRANCH:-master}
 
 # group-based-policy client
-GBPCLIENT_REPO=${GBPCLIENT_REPO:-${GIT_BASE}/stackforge/python-group-based-policy-client.git}
+GBPCLIENT_REPO=${GBPCLIENT_REPO:-${GIT_BASE}/openstack/python-group-based-policy-client.git}
 GBPCLIENT_BRANCH=${GBPCLIENT_BRANCH:-master}
 
 # group-based-policy automation
-GBPHEAT_REPO=${GBPHEAT_REPO:-${GIT_BASE}/stackforge/group-based-policy-automation.git}
+GBPHEAT_REPO=${GBPHEAT_REPO:-${GIT_BASE}/openstack/group-based-policy-automation.git}
 GBPHEAT_BRANCH=${GBPHEAT_BRANCH:-master}
 
 # group-based-policy ui
-GBPUI_REPO=${GBPUI_REPO:-${GIT_BASE}/stackforge/group-based-policy-ui.git}
+GBPUI_REPO=${GBPUI_REPO:-${GIT_BASE}/openstack/group-based-policy-ui.git}
 GBPUI_BRANCH=${GBPUI_BRANCH:-master}
 
 # telemetry service
@@ -443,7 +443,7 @@ GITREPO["keystonemiddleware"]=${KEYSTONEMIDDLEWARE_REPO:-${GIT_BASE}/openstack/k
 GITBRANCH["keystonemiddleware"]=${KEYSTONEMIDDLEWARE_BRANCH:-master}
 
 # s3 support for swift
-SWIFT3_REPO=${SWIFT3_REPO:-${GIT_BASE}/stackforge/swift3.git}
+SWIFT3_REPO=${SWIFT3_REPO:-${GIT_BASE}/openstack/swift3.git}
 SWIFT3_BRANCH=${SWIFT3_BRANCH:-master}
 
 # ceilometer middleware
